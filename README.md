@@ -2,7 +2,7 @@
 
 A full-stack task management web app (mini-Jira) built with **React**, **Node.js/Express**, and **AWS** (DynamoDB, S3, Cognito, SNS, SQS, Lambda, CloudWatch).
 Test Credinntials
-Video link: https://drive.google.com/file/d/1NYzDwbNlVBScTshrKkT8Xk-yFxeTCtHS/view?usp=sharing
+Video link: https://drive.google.com/file/d/1_s3GMPapPFoOyOCVZ-EdaC7iUFlxBVzf/view?usp=sharing
 
 Manager
 email:kiromanager@gmail.com
@@ -15,9 +15,8 @@ pass:1234!Pass
 ---
 
 ## Architecture Overview
+
 <img width="4540" height="3916" alt="architecture" src="https://github.com/user-attachments/assets/14199fcf-a0dd-49a9-b79a-078a8b1ad057" />
-
-
 
 # FlowBoard — Architecture Documentation
 
@@ -77,31 +76,31 @@ Cross-cutting: IAM Roles (permissions for EC2/Lambda), Amazon CloudWatch (observ
 
 ### Component Reference
 
-| Component | Type | Role in Architecture |
-|---|---|---|
-| **End User** | Client | Browser accessing the FlowBoard web app |
-| **Amazon CloudFront** | CDN | Distributes the React frontend/static assets; entry point for user traffic |
-| **Custom VPC** | Networking | Isolated network hosting all compute resources |
-| **Availability Zone 1 & 2** | Networking | Two AZs provide redundancy/high availability |
-| **Public Subnet 1 & 2** | Networking | Host the ALB and NAT Gateway per AZ |
-| **Private Subnet 1 & 2** | Networking | Host EC2 backend instances, isolated from direct internet access |
-| **Application Load Balancer (x2)** | Networking | Distributes incoming API traffic across EC2 instances in each AZ |
-| **NAT Gateway (x2)** | Networking | Allows private-subnet EC2 instances outbound internet access (e.g., for package installs, external calls) without inbound exposure |
-| **Auto Scaling Group** | Compute | Scales EC2 Node.js backend instances based on load |
-| **Amazon EC2 (Node.js Backend)** | Compute | Runs the Express API (per AZ, for redundancy) |
-| **Amazon DynamoDB** | Data | Primary NoSQL data store (users, teams, projects, tasks, comments, audit logs) |
-| **Amazon S3 (Originals)** | Storage | Stores original uploaded task images |
-| **Amazon S3 (Resized)** | Storage | Stores Lambda-generated image thumbnails |
-| **AWS Lambda (Image Resizer)** | Compute (serverless) | Triggered by S3 upload; resizes images to thumbnails |
-| **Amazon SNS** | Messaging | Publishes task-assignment and daily-digest events |
-| **Amazon SQS** | Messaging | Buffers assignment events between SNS and the worker Lambda |
-| **AWS Lambda (Assignment Worker)** | Compute (serverless) | Consumes SQS messages, triggers email notifications |
-| **Amazon SES** | Messaging | Sends transactional/notification emails |
-| **Amazon EventBridge** | Scheduling | Triggers the Daily Digest Lambda on a fixed daily schedule (9:00 AM) |
-| **AWS Lambda (Daily Digest)** | Compute (serverless) | Compiles and sends a daily summary via SNS/SES |
-| **Amazon Cognito** | Identity | Production authentication/authorization (JWT via Cognito User Pool) |
-| **Amazon CloudWatch** | Observability | Centralized metrics and logs for EC2, Lambda, and other services |
-| **IAM Roles** | Security | Least-privilege permissions granted to EC2 and Lambda for AWS service access |
+| Component                          | Type                 | Role in Architecture                                                                                                               |
+| ---------------------------------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **End User**                       | Client               | Browser accessing the FlowBoard web app                                                                                            |
+| **Amazon CloudFront**              | CDN                  | Distributes the React frontend/static assets; entry point for user traffic                                                         |
+| **Custom VPC**                     | Networking           | Isolated network hosting all compute resources                                                                                     |
+| **Availability Zone 1 & 2**        | Networking           | Two AZs provide redundancy/high availability                                                                                       |
+| **Public Subnet 1 & 2**            | Networking           | Host the ALB and NAT Gateway per AZ                                                                                                |
+| **Private Subnet 1 & 2**           | Networking           | Host EC2 backend instances, isolated from direct internet access                                                                   |
+| **Application Load Balancer (x2)** | Networking           | Distributes incoming API traffic across EC2 instances in each AZ                                                                   |
+| **NAT Gateway (x2)**               | Networking           | Allows private-subnet EC2 instances outbound internet access (e.g., for package installs, external calls) without inbound exposure |
+| **Auto Scaling Group**             | Compute              | Scales EC2 Node.js backend instances based on load                                                                                 |
+| **Amazon EC2 (Node.js Backend)**   | Compute              | Runs the Express API (per AZ, for redundancy)                                                                                      |
+| **Amazon DynamoDB**                | Data                 | Primary NoSQL data store (users, teams, projects, tasks, comments, audit logs)                                                     |
+| **Amazon S3 (Originals)**          | Storage              | Stores original uploaded task images                                                                                               |
+| **Amazon S3 (Resized)**            | Storage              | Stores Lambda-generated image thumbnails                                                                                           |
+| **AWS Lambda (Image Resizer)**     | Compute (serverless) | Triggered by S3 upload; resizes images to thumbnails                                                                               |
+| **Amazon SNS**                     | Messaging            | Publishes task-assignment and daily-digest events                                                                                  |
+| **Amazon SQS**                     | Messaging            | Buffers assignment events between SNS and the worker Lambda                                                                        |
+| **AWS Lambda (Assignment Worker)** | Compute (serverless) | Consumes SQS messages, triggers email notifications                                                                                |
+| **Amazon SES**                     | Messaging            | Sends transactional/notification emails                                                                                            |
+| **Amazon EventBridge**             | Scheduling           | Triggers the Daily Digest Lambda on a fixed daily schedule (9:00 AM)                                                               |
+| **AWS Lambda (Daily Digest)**      | Compute (serverless) | Compiles and sends a daily summary via SNS/SES                                                                                     |
+| **Amazon Cognito**                 | Identity             | Production authentication/authorization (JWT via Cognito User Pool)                                                                |
+| **Amazon CloudWatch**              | Observability        | Centralized metrics and logs for EC2, Lambda, and other services                                                                   |
+| **IAM Roles**                      | Security             | Least-privilege permissions granted to EC2 and Lambda for AWS service access                                                       |
 
 ---
 
@@ -153,14 +152,14 @@ mini-jira/
 
 Run `node scripts/createTables.js` to create 6 tables (all **PAY_PER_REQUEST** billing):
 
-| Table | Global Secondary Indexes |
-|---|---|
-| `mj-users` | `email-index`, `teamId-index` |
-| `mj-teams` | — |
-| `mj-projects` | — |
-| `mj-tasks` | `teamId-index` (status sort key) |
-| `mj-comments` | `taskId-index` |
-| `mj-audit` | `taskId-index` |
+| Table         | Global Secondary Indexes         |
+| ------------- | -------------------------------- |
+| `mj-users`    | `email-index`, `teamId-index`    |
+| `mj-teams`    | —                                |
+| `mj-projects` | —                                |
+| `mj-tasks`    | `teamId-index` (status sort key) |
+| `mj-comments` | `taskId-index`                   |
+| `mj-audit`    | `taskId-index`                   |
 
 ### 4.2 S3 Buckets
 
@@ -186,11 +185,11 @@ CORS configuration for the originals bucket:
 
 Deployed separately (SAM, CDK, or Serverless Framework):
 
-| Function | Trigger | Handler File |
-|---|---|---|
-| `mj-image-resizer` | S3 `ObjectCreated` on `mj-task-images` | `lambdas/imageResizer.js` |
-| `mj-assignment-worker` | SQS `mj-assignment-queue` | `lambdas/assignmentWorker.js` |
-| `mj-daily-digest` | EventBridge rule at 9:00 AM daily | `lambdas/dailyDigest.js` |
+| Function               | Trigger                                | Handler File                  |
+| ---------------------- | -------------------------------------- | ----------------------------- |
+| `mj-image-resizer`     | S3 `ObjectCreated` on `mj-task-images` | `lambdas/imageResizer.js`     |
+| `mj-assignment-worker` | SQS `mj-assignment-queue`              | `lambdas/assignmentWorker.js` |
+| `mj-daily-digest`      | EventBridge rule at 9:00 AM daily      | `lambdas/dailyDigest.js`      |
 
 > The `imageResizer` function requires a **sharp** Lambda layer.
 
@@ -251,16 +250,16 @@ EventBridge rule (9:00 AM daily)
 
 ## 6. Role-Based Access Control (RBAC)
 
-| Feature | Employee | Manager | Admin |
-|---|:---:|:---:|:---:|
-| View own team's tasks | ✅ | ✅ | ✅ |
-| View all teams' tasks | ❌ | ✅ | ✅ |
-| Create / edit / delete tasks | ❌ | ✅ | ✅ |
-| Update task status | ✅ | ✅ | ✅ |
-| Add comments | ✅ | ✅ | ✅ |
-| Manage teams | ❌ | ✅ | ✅ |
-| Manage projects | ❌ | ✅ | ✅ |
-| View analytics | ❌ | ✅ | ✅ |
+| Feature                      | Employee | Manager | Admin |
+| ---------------------------- | :------: | :-----: | :---: |
+| View own team's tasks        |    ✅    |   ✅    |  ✅   |
+| View all teams' tasks        |    ❌    |   ✅    |  ✅   |
+| Create / edit / delete tasks |    ❌    |   ✅    |  ✅   |
+| Update task status           |    ✅    |   ✅    |  ✅   |
+| Add comments                 |    ✅    |   ✅    |  ✅   |
+| Manage teams                 |    ❌    |   ✅    |  ✅   |
+| Manage projects              |    ❌    |   ✅    |  ✅   |
+| View analytics               |    ❌    |   ✅    |  ✅   |
 
 **Team isolation is enforced server-side** in every route — employees can only access their own team's data regardless of what the client sends. This logic lives in `server/src/middleware/auth.js` (`requireRole`) and is re-checked in each route handler.
 
@@ -270,23 +269,23 @@ EventBridge rule (9:00 AM daily)
 
 ### 7.1 Auth
 
-| Method | Path | Body |
-|---|---|---|
-| POST | `/api/auth/register` | `{ name, email, password, role, teamId }` |
-| POST | `/api/auth/login` | `{ email, password }` → returns `{ user: { ...fields, token } }` |
+| Method | Path                 | Body                                                             |
+| ------ | -------------------- | ---------------------------------------------------------------- |
+| POST   | `/api/auth/register` | `{ name, email, password, role, teamId }`                        |
+| POST   | `/api/auth/login`    | `{ email, password }` → returns `{ user: { ...fields, token } }` |
 
 ### 7.2 Tasks
 
-| Method | Path | Auth |
-|---|---|---|
-| GET | `/api/tasks` | All roles |
-| GET | `/api/tasks/:id` | All roles |
-| POST | `/api/tasks` | Manager |
-| PATCH | `/api/tasks/:id` | Manager (full) / Employee (status only) |
-| DELETE | `/api/tasks/:id` | Manager |
-| GET | `/api/tasks/:id/comments` | All roles |
-| POST | `/api/tasks/:id/comments` | All roles |
-| GET | `/api/tasks/:id/audit` | All roles |
+| Method | Path                      | Auth                                    |
+| ------ | ------------------------- | --------------------------------------- |
+| GET    | `/api/tasks`              | All roles                               |
+| GET    | `/api/tasks/:id`          | All roles                               |
+| POST   | `/api/tasks`              | Manager                                 |
+| PATCH  | `/api/tasks/:id`          | Manager (full) / Employee (status only) |
+| DELETE | `/api/tasks/:id`          | Manager                                 |
+| GET    | `/api/tasks/:id/comments` | All roles                               |
+| POST   | `/api/tasks/:id/comments` | All roles                               |
+| GET    | `/api/tasks/:id/audit`    | All roles                               |
 
 ### 7.3 Teams, Projects, Users
 
@@ -358,6 +357,6 @@ npm run dev
 
 ## 10. Reference Materials
 
-- Architecture diagram: *Horizontal AWS HA Architecture* (see Section 2)
+- Architecture diagram: _Horizontal AWS HA Architecture_ (see Section 2)
 - Demo video: available via the project's shared drive link
 - Demo accounts: seeded by `scripts/seed.js` for Manager and Employee roles (see `.env.example` / seed script for current credentials — avoid committing real credentials to version control or public documentation)
